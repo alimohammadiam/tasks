@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>cart</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/cart.css' %}">
+</head>
+
+<body>
+
+<div class="cart-container">
+    <h2 class="cart-title">Your Cart</h2>
+
+    <form method="post" class="cart-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-add-to-cart">Add to Cart</button>
+    </form>
+
+    <h3 class="cart-items-title">Items in Cart</h3>
+
+    <ul class="cart-items-list">
+        {% for item in cart_items %}
+        <li class="cart-item">
+            <span class="item-name">{{ item.product_name }}</span>
+            <span class="item-price">${{ item.product_price }}</span>
+            <span class="item-quantity">({{ item.quantity }} pcs)</span>
+            <span class="item-total">Total: toman{{ item.total_price }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h4 class="cart-total">Total: toman{{ total_amount }}</h4>
+
+    <a href="#" class="btn-checkout">Proceed to Checkout</a>
+</div>
+
+</body>
