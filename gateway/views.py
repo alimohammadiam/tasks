@@ -17,6 +17,8 @@ class TransactionCreate(APIView):
     # permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        print("Received data:", request.data)  # چاپ داده‌های دریافتی
+
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
             transaction = serializer.save(transaction_id=str(uuid.uuid4()))
@@ -36,7 +38,7 @@ class TransactionCreate(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
         else:
             print("Errors in serializer:", serializer.errors)  # برای اشکال زدایی
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def process_payment(self, transaction):
         try:
