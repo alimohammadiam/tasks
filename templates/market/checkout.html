@@ -1,10 +1,35 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Checkout</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/checkout.css' %}">
 </head>
 <body>
+
+<div class="checkout-container">
+    <h2 class="checkout-title">Checkout</h2>
+
+    <h3>Your Cart</h3>
+    <ul class="cart-items-list">
+        {% for item in cart_items %}
+            <li class="cart-item">
+                <span class="item-name">{{ item.product_name }}</span>
+                <span class="item-price">Price: toman{{ item.product_price }}</span>
+                <span class="item-quantity">Quantity: {{ item.quantity }}</span>
+                <span class="item-total">Total: toman{{ item.total_price }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h4 class="total-price">Total Amount: toman{{ total_price }}</h4>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-checkout">Proceed to Payment</button>
+    </form>
+</div>
 
 </body>
 </html>

@@ -24,7 +24,7 @@
         {% for item in cart_items %}
         <li class="cart-item">
             <span class="item-name">{{ item.product_name }}</span>
-            <span class="item-price">${{ item.product_price }}</span>
+            <span class="item-price">toman{{ item.product_price }}</span>
             <span class="item-quantity">({{ item.quantity }} pcs)</span>
             <span class="item-total">Total: toman{{ item.total_price }}</span>
         </li>
@@ -33,7 +33,7 @@
 
     <h4 class="cart-total">Total: toman{{ total_amount }}</h4>
 
-    <a href="#" class="btn-checkout">Proceed to Checkout</a>
+    <a href="{% url 'market:checkout_view' %}" class="btn-checkout">Proceed to Checkout</a>
 </div>
 
 </body>

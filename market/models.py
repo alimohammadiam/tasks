@@ -13,7 +13,7 @@ class Market(models.Model):
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user')
     product_name = models.CharField(max_length=250)
-    product_price = models.CharField(max_length=20)
+    product_price = models.DecimalField(max_digits=20, decimal_places=1)
     quantity = models.IntegerField(default=1)
 
     def total_price(self):
