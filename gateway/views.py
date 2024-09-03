@@ -21,16 +21,20 @@ class TransactionCreate(APIView):
 
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
+            print("valid")
             transaction = serializer.save(transaction_id=str(uuid.uuid4()))
+            print(transaction)
             if self.process_payment(transaction):
+                print("transaction OK")
                 transaction.status = 'success'
                 transaction.save()
 
                 callback_url = request.data.get('callback_url')
                 if callback_url:
                     requests.post(callback_url, json={"transaction_id": transaction.transaction_id, "status": "success"})
-                    return Response({'transaction_id': transaction.transaction_id, 'status': 'success'},
-                                    status=status.HTTP_200_OK)
+
+                return Response({'transaction_id': transaction.transaction_id, 'status': 'success'},
+                                status=status.HTTP_200_OK)          ####
             else:
                 transaction.status = 'failed'
                 transaction.save()
@@ -47,6 +51,7 @@ class TransactionCreate(APIView):
                 account.balance = account.balance - transaction.amount
                 account.save()
                 return True
-            return False
+            else:
+                return False
         except BankAccount.DoesNotExist:
             return False

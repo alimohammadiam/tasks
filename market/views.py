@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import CartItem
 from .forms import AddToCartForm
 import requests
+from decimal import Decimal
 
 # Create your views here.
 
@@ -44,11 +45,13 @@ def checkout_view(request):
         }
 
         response = requests.post('http://127.0.0.1:8000/payment/', json=payment_data)
+        print("Response status code:", response.status_code)  # چاپ وضعیت پاسخ
 
         if response.status_code == 200:
             CartItem.objects.filter(user=request.user).delete()
             return redirect('market:success_page')
         else:
+            print("Failed transaction:", response.content)  # محتوای پاسخ را برای اشکال زدایی چاپ کنید
             return redirect('market:failure_page')
 
     context = {
