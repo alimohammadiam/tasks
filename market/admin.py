@@ -1,5 +1,5 @@
 from django.contrib import admin
-from.models import Market, CartItem
+from.models import Market, CartItem, Transaction
 
 # Register your models here.
 
@@ -11,4 +11,10 @@ class MarketAdmin(admin.ModelAdmin):
 
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):
-    list_display = ['user', 'product_name', 'product_name', 'quantity']
+    list_display = ['user', 'product_name', 'product_price', 'quantity']
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['account_number', 'amount', 'status', 'transaction_id', 'create_time']
+

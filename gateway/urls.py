@@ -5,6 +5,6 @@ from . import views
 app_name = 'gateway'
 
 urlpatterns = [
-    path('payment/', views.TransactionCreate.as_view(), name='payment_gateway'),
+    # path('payment/', views.TransactionCreate.as_view(), name='payment_gateway'),
 
 ]
