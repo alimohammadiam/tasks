@@ -15,6 +15,7 @@ class CartItem(models.Model):
     product_name = models.CharField(max_length=250)
     product_price = models.DecimalField(max_digits=20, decimal_places=1)
     quantity = models.IntegerField(default=1)
+    total_price_cart = models.DecimalField(max_digits=20, decimal_places=1, blank=True, null=True)
 
     def total_price(self):
         return self.product_price * self.quantity
