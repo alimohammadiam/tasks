@@ -13,7 +13,7 @@ class BankAccount(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='bank_account')
     account_number = models.CharField(max_length=16, unique=True)
     password = models.CharField(max=128)
-    cvv = models.CharField(max_length=4)
+    cvv2 = models.CharField(max_length=4)
     balance = models.DecimalField(max_digits=20, decimal_places=1)
     account_status = models.CharField(max_length=10, choices=STATUS_ACCOUNT, default='active')
 
