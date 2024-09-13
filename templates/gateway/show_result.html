@@ -5,6 +5,9 @@
 {% block content %}
 
     <h1>{{ message }}</h1>
+    {% if transaction_id %}
+        <p>شماره تراکنش: {{ transaction_id }}</p>
+    {% endif %}
     <a href="{% url 'gateway:return_to_market' %}">بازگشت به فروشگاه</a>
 
 {% endblock %}

@@ -24,7 +24,7 @@ class Transaction(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
 
     reference_id = models.DecimalField(max_digits=10, unique=True, decimal_places=0)
-    last_market_ok = models.BooleanField(default=False, blank=True, null=True)
+    last_market_ok = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Transaction {self.transaction_id} - {self.status}"

@@ -8,6 +8,7 @@ import requests
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .forms import BankAccountInfo
+from .models import Transaction
 
 # Create your views here.
 
@@ -40,6 +41,18 @@ def process_payment_view(request):
 
             user = request.session.get('user')
             total_price = request.session.get('total_price_cart')
+            product_name = request.session.get('product_name')
+
+            transaction_id = str(uuid.uuid4())
+
+            transaction = Transaction.objects.create(
+                user=user,
+                from_market='market A',
+                account_number=account_number,
+                amount=total_price,
+                product_name=product_name,
+                transaction_id=transaction_id
+            )
 
             data_to_send = {
                 'user': user,
@@ -47,6 +60,7 @@ def process_payment_view(request):
                 'account_number': account_number,
                 'cvv2': cvv2,
                 'password': password,
+                'transaction_id': transaction_id,
             }
 
             response = requests.post('http://server/process_payment', json=data_to_send)
@@ -54,6 +68,14 @@ def process_payment_view(request):
             if response.status_code == 200:
                 result = response.json().get('result')
                 request.session['transaction_result'] = result
+
+                if result == 'success':
+                    transaction.status = 'success'
+                else:
+                    transaction.status = 'failed'
+
+                transaction.save()
+
                 return redirect('show transaction result')
             else:
                 return render(request, 'gateway/error.html', {'error': 'خطا در ارتباط با بانک'})
