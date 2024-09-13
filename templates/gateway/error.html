@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'parent/base.html' %}
 
-</body>
-</html>
+{% block title %}error{% endblock %}
+
+{% block content %}
+
+    <h1>خطایی رخ داده!</h1>
+    <p>{{ error }}</p>
+    <a href="{% url 'gateway:payment_page' %}">بازگشت به صفحه پرداخت</a>
+
+{% endblock %}

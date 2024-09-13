@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'parent/base.html' %}
 
-</body>
-</html>
+{% block title %}payment page{% endblock %}
+
+{% block content %}
+    <h1>پرداخت برای {{ product_name }}</h1>
+    <p>کاربر: {{ user.username }}</p>
+    <p>مبلغ نهایی: {{ total_price }}</p>
+
+    <form method="POST" action="{% url 'gateway:proces_payment' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">پرداخت</button>
+    </form>
+
+{% endblock %}
