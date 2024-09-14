@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'market.apps.MarketConfig',
     'gateway.apps.GatewayConfig',
+    'bank.apps.BankConfig',
 ]
 
 MIDDLEWARE = [
