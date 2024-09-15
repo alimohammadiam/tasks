@@ -9,16 +9,26 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .forms import BankAccountInfo
 from .models import Transaction
+import json
 
 # Create your views here.
 
 
 def payment_page_view(request):
-    user = request.session.get('user')
-    product_name = request.session.get('product_name')
-    total_price = request.session.get('total_price_cart')
+    # user = request.session.get('user')
+    # product_name = request.session.get('product_name')
+    # total_price = request.session.get('total_price_cart')
+
+    data = json.loads(request.body)
+    user = data['user']
+    product_name = data['product_name']
+    total_price = data['total_price']
 
     form = BankAccountInfo()
+
+    request.session['user'] = user
+    request.session['product_name'] = product_name
+    request.session['total_price'] = total_price
 
     context = {
         'user': user,
@@ -63,11 +73,15 @@ def process_payment_view(request):
                 'transaction_id': transaction_id,
             }
 
-            response = requests.post('http://server/process_payment', json=data_to_send)
+            response = requests.post('http://server-bank/process_payment/', json=data_to_send)
 
             if response.status_code == 200:
-                result = response.json().get('result')
+                response_data = response.json()
+                result = response_data.get('result')
+                transaction.reference_id = response_data['reference_id']
+
                 request.session['transaction_result'] = result
+                request.session['reference_id'] = response_data['reference_id']
 
                 if result == 'success':
                     transaction.status = 'success'
@@ -76,14 +90,14 @@ def process_payment_view(request):
 
                 transaction.save()
 
-                return redirect('show transaction result')
-            else:
+                return redirect('gateway:show_bank_result')
+            else:  # status_code != 200
                 return render(request, 'gateway/error.html', {'error': 'خطا در ارتباط با بانک'})
 
-        else:
-            form = BankAccountInfo()
+    else:  # request.method != 'POST'
+        form = BankAccountInfo()
 
-        return render(request, 'gateway/payment_page.html', {'form': form})
+    return render(request, 'gateway/payment_page.html', {'form': form})
 
 
 def show_bank_result_view(request):
@@ -99,16 +113,18 @@ def show_bank_result_view(request):
 def return_to_market_view(request):
     user = request.session.get('user')
     transaction_result = request.session.get('transaction_result')
+    reference_id = request.session.get('reference_id')
 
     date_to_send = {
         'user': user,
         'transaction_result': transaction_result,
+        'reference_id': reference_id,
     }
 
-    response = requests.post('http://server-market/update_transaction/', json=date_to_send)
+    response = requests.post('http://server-market/market/success/', json=date_to_send)
 
     if response.status_code == 200:
-        return redirect('http://server-market/cart/')
+        return redirect('http://server-market/market/success/')
     else:
         return render(request, 'gateway/error.html', {'error': 'خطا در بازگشت به فروشگاه'})
 

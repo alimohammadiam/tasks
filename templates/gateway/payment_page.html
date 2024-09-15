@@ -3,7 +3,7 @@
 {% block title %}payment page{% endblock %}
 
 {% block content %}
-    <h1>پرداخت برای {{ product_name }}</h1>
+    <h1>پرداخت برای {{ product_name.first }}</h1>
     <p>کاربر: {{ user.username }}</p>
     <p>مبلغ نهایی: {{ total_price }}</p>
 

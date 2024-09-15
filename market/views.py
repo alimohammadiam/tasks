@@ -41,13 +41,20 @@ def go_to_gateway(request):
     serializer = CartItemSerializer(cart_data)
     data = serializer.data
 
-    response = requests.post('http://127.0.0.1:8000/gateway/', json=data)
+    response = requests.post('http://127.0.0.1:8000/gateway/payment/', json=data)
 
     if response.status_code == 200:
-        return redirect('http://127.0.0.1:8000/gateway-page/')
+        return redirect('http://127.0.0.1:8000/gateway/process-payment/')
 
     else:
         return JsonResponse({'error': 'Failed to send data to gateway'}, status=500)
+
+
+def verify_transaction(request):
+    pass
+    # get bank result
+    # check product
+    # send last oky for psp and bank
 
 
 
@@ -82,6 +89,8 @@ def go_to_gateway(request):
 
 def success_page(request):
     return render(request, 'market/success_page.html')
+    # call verify_transaction
+    # update transaction
 
 
 def failure_page(request):

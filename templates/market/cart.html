@@ -1,39 +1,39 @@
+{% extends 'parent/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>cart</title>
+
+{% block title %}Cart({% endblock %}
+    {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/cart.css' %}">
-</head>
+    {% endblock %}
 
-<body>
 
-<div class="cart-container">
-    <h2 class="cart-title">Your Cart</h2>
+{% block content %}
 
-    <form method="post" class="cart-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn-add-to-cart">Add to Cart</button>
-    </form>
+    <div class="cart-container">
+        <h2 class="cart-title">Your Cart</h2>
 
-    <h3 class="cart-items-title">Items in Cart</h3>
+        <form method="post" class="cart-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-add-to-cart">Add to Cart</button>
+        </form>
 
-    <ul class="cart-items-list">
-        {% for item in cart_items %}
-        <li class="cart-item">
-            <span class="item-name">{{ item.product_name }}</span>
-            <span class="item-price">toman{{ item.product_price }}</span>
-            <span class="item-quantity">({{ item.quantity }} pcs)</span>
-            <span class="item-total">Total: toman{{ item.total_price }}</span>
-        </li>
-        {% endfor %}
-    </ul>
+        <h3 class="cart-items-title">Items in Cart</h3>
 
-    <h4 class="cart-total">Total: toman{{ total_amount }}</h4>
+        <ul class="cart-items-list">
+            {% for item in cart_items %}
+            <li class="cart-item">
+                <span class="item-name">{{ item.product_name }}</span>
+                <span class="item-price">toman{{ item.product_price }}</span>
+                <span class="item-quantity">({{ item.quantity }} pcs)</span>
+                <span class="item-total">Total: toman{{ item.total_price }}</span>
+            </li>
+            {% endfor %}
+        </ul>
 
-    <a href="{% url 'market:checkout_view' %}" class="btn-checkout">Proceed to Checkout</a>
-</div>
+        <h4 class="cart-total">Total: toman{{ total_amount }}</h4>
 
-</body>
+        <a href="{% url 'market:go_gateway' %}" class="btn-checkout">Proceed to Checkout</a>
+    </div>
+{% endblock %}
+

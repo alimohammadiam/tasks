@@ -23,7 +23,7 @@ class Transaction(models.Model):
     transaction_id = models.CharField(max_length=100, unique=True)
     create_time = models.DateTimeField(auto_now_add=True)
 
-    reference_id = models.DecimalField(max_digits=10, unique=True, decimal_places=0)
+    reference_id = models.DecimalField(max_digits=10, unique=True, decimal_places=0, null=True, blank=True)
     last_market_ok = models.BooleanField(default=False)
 
     def __str__(self):
