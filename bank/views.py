@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from .models import BankAccount, Transaction
 from django.http import JsonResponse
 import random
-from celery import shared_task
+from .tasks import check_last_ok
+
 
 # Create your views here.
 
@@ -38,7 +39,7 @@ def bank_transaction_view(request):
 
         )
 
-        # check_transaction_status.apply_async((transaction.transaction_id,), countdown=300)  # 300 ثانیه = 5 دقیقه
+        check_last_ok.apply_async((transaction.transaction_id,), countdown=300)  # 300 ثانیه = 5 دقیقه
 
         return JsonResponse({
             'status': 'success',
@@ -50,21 +51,3 @@ def bank_transaction_view(request):
     return JsonResponse({'status': 'failed', 'message': 'خطا درخواست !'}, status=400)
 
 
-@shared_task
-def check_last_ok(transaction_id):
-    transaction = Transaction.objects.get(transaction_id=transaction_id)
-    account = BankAccount.objects.get(account_number=transaction.account_number)
-
-    if not transaction.last_market_ok:
-        amount = transaction.amount
-        account.balance += amount
-
-        account.save()
-
-        transaction.status = 'failed'
-        transaction.save()
-
-        #send message to psp
-        #in transaction model --> account_number get
-        ######## management errors
-        # urls
