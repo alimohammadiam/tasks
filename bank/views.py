@@ -30,13 +30,15 @@ def bank_transaction_view(request):
         reference_id = random.randint(100000000, 999999999)
 
         transaction = Transaction.objects.create(
-            account=account,
+            account_number=account_number,
             amount=amount,
             transaction_id=transaction_id,
             reference_id=reference_id,
             status='success'
 
         )
+
+        # check_transaction_status.apply_async((transaction.transaction_id,), countdown=300)  # 300 ثانیه = 5 دقیقه
 
         return JsonResponse({
             'status': 'success',
@@ -58,6 +60,8 @@ def check_last_ok(transaction_id):
         account.balance += amount
 
         account.save()
+
+        transaction.status = 'failed'
         transaction.save()
 
         #send message to psp
