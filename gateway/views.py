@@ -1,4 +1,6 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from .serializers import TransactionSerializer
 import uuid
@@ -129,6 +131,39 @@ def return_to_market_view(request):
         return render(request, 'gateway/error.html', {'error': 'خطا در بازگشت به فروشگاه'})
 
 
+@csrf_exempt
+def transaction_status_from_bank(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        reference_id = data.get('reference_id')
+        status = data.get('status')
+        message = data.get('message')
+
+        try:
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+            transaction.status = status
+            transaction.bank_message = message
+            transaction.save()
+
+            response = requests.post('http://market-server/psp-message', json={
+                'transaction_id': transaction_id,
+                'reference_id': reference_id,
+                'status': status,
+                'message': message,
+            })
+
+            if response.status_code == 200:
+                print('not-confirmed message successfully send to market')
+            else:
+                print('not-confirmed message NOT successfully send to market !')
+
+            return JsonResponse({'status': 'success', 'message': 'Transaction status updated successfully.'})
+
+        except Transaction.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Transaction not found.'}, status=404)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
 
 
 

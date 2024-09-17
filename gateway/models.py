@@ -25,6 +25,7 @@ class Transaction(models.Model):
 
     reference_id = models.DecimalField(max_digits=10, unique=True, decimal_places=0, null=True, blank=True)
     last_market_ok = models.BooleanField(default=False)
+    bank_message = models.CharField(max_length=250, null=True, blank=True)
 
     def __str__(self):
         return f"Transaction {self.transaction_id} - {self.status}"
