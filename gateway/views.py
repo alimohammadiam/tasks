@@ -116,11 +116,19 @@ def return_to_market_view(request):
     user = request.session.get('user')
     transaction_result = request.session.get('transaction_result')
     reference_id = request.session.get('reference_id')
+    transaction_id = request.session.get('transaction_id')
+
+    transaction = Transaction.objects.get(transaction_id=transaction_id)
 
     date_to_send = {
         'user': user,
+        'transaction_id': transaction_id,
         'transaction_result': transaction_result,
         'reference_id': reference_id,
+        'account_number': transaction.account_number,
+        'amount': transaction.amount,
+        'status': transaction.status,
+
     }
 
     response = requests.post('http://server-market/market/success/', json=date_to_send)
@@ -129,6 +137,23 @@ def return_to_market_view(request):
         return redirect('http://server-market/market/success/')
     else:
         return render(request, 'gateway/error.html', {'error': 'خطا در بازگشت به فروشگاه'})
+
+
+def get_last_ok(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        last_ok = data.get('last_market_ok')
+        transaction_id = data.get('transaction_id')
+
+        if last_ok:
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+            transaction.last_market_ok = last_ok
+            transaction.save()
+
+            response = requests.post('http://bank-server/last-ok/', {
+                'transaction_id': transaction_id,
+                'last_ok': last_ok,
+            })
 
 
 @csrf_exempt

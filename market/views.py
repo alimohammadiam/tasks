@@ -1,5 +1,7 @@
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CartItem
+from .models import CartItem, Transaction
 from .forms import AddToCartForm
 from .serializers import CartItemSerializer
 from django.http import JsonResponse
@@ -50,11 +52,7 @@ def go_to_gateway(request):
         return JsonResponse({'error': 'Failed to send data to gateway'}, status=500)
 
 
-def verify_transaction(request):
-    pass
-    # get bank result
-    # check product
-    # send last oky for psp and bank
+
 
 
 
@@ -88,9 +86,43 @@ def verify_transaction(request):
 
 
 def success_page(request):
+    data = json.loads(request.body)
+    transaction_id = data.get('transaction_id')
+
+    transaction = Transaction.objects.create(
+        user=data.get('user'),
+        transaction_id=data.get('transaction_id'),
+        transaction_result=data.get('transaction_result'),
+        reference_id=data.get('reference_id'),
+        account_number=data.get('account_number'),
+        amount=data.get('amount'),
+        status=data.get('status'),
+    )
+
+    if data.get('status') == 'success' and verify_transaction(transaction_id):
+        send_last_ok(transaction_id)
+
     return render(request, 'market/success_page.html')
     # call verify_transaction
     # update transaction
+
+
+def verify_transaction(transaction_id):
+    # get bank result
+    # check product
+    # send last oky for psp and bank
+    return True
+
+
+def send_last_ok(transaction_id):
+    transaction = Transaction.objects.get(transaction_id=transaction_id)
+    transaction.last_market_ok = True
+    transaction.save()
+
+    response = requests.post('http://psp-server/get-ok', json={
+        'last_market_ok': True,
+        'transaction_id': transaction_id
+    })
 
 
 def failure_page(request):

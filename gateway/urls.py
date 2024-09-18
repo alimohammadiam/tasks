@@ -11,5 +11,6 @@ urlpatterns = [
     path('result/', views.show_bank_result_view, name='show_bank_result'),
     path('return/', views.return_to_market_view, name='return_to_market'),
     path('transaction-status/', views.transaction_status_from_bank, name='transaction_status'),
+    path('get-ok/', views.get_last_ok, name='get_last_ok')
 
 ]

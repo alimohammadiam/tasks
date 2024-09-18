@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render, get_object_or_404
 from .models import BankAccount, Transaction
 from django.http import JsonResponse
@@ -51,3 +53,13 @@ def bank_transaction_view(request):
     return JsonResponse({'status': 'failed', 'message': 'خطا درخواست !'}, status=400)
 
 
+def get_last_ok(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        last_ok = data.get('last_ok')
+
+        if last_ok:
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+            transaction.last_market_ok = last_ok
+            transaction.save()
