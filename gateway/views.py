@@ -72,7 +72,7 @@ def process_payment_view(request):
                 'transaction_id': transaction_id,
             }
 
-            response = requests.post('http://server-bank/process_payment/', json=data_to_send)
+            response = requests.post('http://127.0.0.1:8000/bank/process_payment/', json=data_to_send)
 
             if response.status_code == 200:
                 response_data = response.json()
@@ -128,10 +128,10 @@ def return_to_market_view(request):
 
     }
 
-    response = requests.post('http://server-market/market/success/', json=date_to_send)
+    response = requests.post('http://127.0.0.1:8000/market/success/', json=date_to_send)
 
     if response.status_code == 200:
-        return redirect('http://server-market/market/success/')
+        return redirect('http://127.0.0.1:8000/market/success/')
     else:
         return render(request, 'gateway/error.html', {'error': 'خطا در بازگشت به فروشگاه'})
 
@@ -147,7 +147,7 @@ def get_last_ok(request):
             transaction.last_market_ok = last_ok
             transaction.save()
 
-            response = requests.post('http://bank-server/last-ok/', {
+            response = requests.post('http://127.0.0.1:8000/bank/last-ok/', {
                 'transaction_id': transaction_id,
                 'last_ok': last_ok,
             })
@@ -168,7 +168,7 @@ def transaction_status_from_bank(request):
             transaction.bank_message = message
             transaction.save()
 
-            response = requests.post('http://market-server/psp-message', json={
+            response = requests.post('http://127.0.0.1:8000/market/psp-message', json={
                 'transaction_id': transaction_id,
                 'reference_id': reference_id,
                 'status': status,
@@ -186,37 +186,6 @@ def transaction_status_from_bank(request):
             return JsonResponse({'status': 'error', 'message': 'Transaction not found.'}, status=404)
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

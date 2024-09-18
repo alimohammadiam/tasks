@@ -12,7 +12,7 @@ import requests
 
 def cart_view(request):
     cart_items = CartItem.objects.filter(user=request.user)
-    total_price = (item.total_price() for item in cart_items)
+    total_price = sum(item.total_price() for item in cart_items)
 
     if request.method == 'POST':
         form = AddToCartForm(request.POST)
@@ -38,17 +38,18 @@ def cart_view(request):
 
 
 def go_to_gateway(request):
-    cart_data = get_object_or_404(CartItem, user=request.user)
-    serializer = CartItemSerializer(cart_data)
-    data = serializer.data
+    cart_data = CartItem.objects.filter(user=request.user)
+    if not cart_data.exists():
+        serializer = CartItemSerializer(cart_data)
+        data = serializer.data
 
-    response = requests.post('http://127.0.0.1:8000/gateway/payment/', json=data)
+        response = requests.post('http://127.0.0.1:8000/gateway/payment/', json=data)
 
-    if response.status_code == 200:
-        return redirect('http://127.0.0.1:8000/gateway/process-payment/')
+        if response.status_code == 200:
+            return redirect('http://127.0.0.1:8000/gateway/process-payment/')
 
-    else:
-        return JsonResponse({'error': 'Failed to send data to gateway'}, status=500)
+        else:
+            return JsonResponse({'error': 'Failed to send data to gateway'}, status=500)
 
 
 
@@ -128,7 +129,8 @@ def failure_page(request):
     return render(request, 'market/failure_page.html')
 
 
-
+def psp_message(request):
+    print('a message from psp getting')
 
 
 
