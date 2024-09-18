@@ -17,9 +17,6 @@ import json
 
 
 def payment_page_view(request):
-    # user = request.session.get('user')
-    # product_name = request.session.get('product_name')
-    # total_price = request.session.get('total_price_cart')
 
     data = json.loads(request.body)
     user = data['user']

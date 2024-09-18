@@ -11,6 +11,7 @@ class Transaction(models.Model):
         ('pending', 'Pending'),
         ('success', 'Success'),
         ('failed', 'Failed'),
+        ('not-confirm', 'Not-confirm')
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='psp_transaction_user')
@@ -19,7 +20,7 @@ class Transaction(models.Model):
 
     account_number = models.CharField(max_length=16, unique=True)
     amount = models.DecimalField(max_digits=20, decimal_places=1)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='pending')
     transaction_id = models.CharField(max_length=100, unique=True)
     create_time = models.DateTimeField(auto_now_add=True)
 

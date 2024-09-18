@@ -1,12 +1,11 @@
 import json
-
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import CartItem, Transaction
 from .forms import AddToCartForm
 from .serializers import CartItemSerializer
 from django.http import JsonResponse
 import requests
-from decimal import Decimal
+
 
 # Create your views here.
 
