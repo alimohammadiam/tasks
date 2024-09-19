@@ -17,28 +17,31 @@ import json
 
 
 def payment_page_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        product_name = data.get('product_name')
+        total_price = data.get('total_price')
 
-    data = json.loads(request.body)
-    user = data['user']
-    product_name = data['product_name']
-    total_price = data['total_price']
+        form = BankAccountInfo()
 
-    form = BankAccountInfo()
+        request.session['user'] = user
+        request.session['product_name'] = product_name
+        request.session['total_price'] = total_price
 
-    request.session['user'] = user
-    request.session['product_name'] = product_name
-    request.session['total_price'] = total_price
+        context = {
+            'user': user,
+            'product_name': product_name,
+            'total_price': total_price,
+            'form': form,
+        }
 
-    context = {
-        'user': user,
-        'product_name': product_name,
-        'total_price': total_price,
-        'form': form,
-    }
-
-    return render(request, 'gateway/payment_page.html', context)
+        return render(request, 'gateway/payment_page.html', context)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
+@csrf_exempt
 def process_payment_view(request):
     if request.method == 'POST':
         form = BankAccountInfo(request.POST)
@@ -49,8 +52,11 @@ def process_payment_view(request):
             password = form.cleaned_data['password']
 
             user = request.session.get('user')
-            total_price = request.session.get('total_price_cart')
+            total_price = request.session.get('total_price')
             product_name = request.session.get('product_name')
+
+            if not total_price:
+                return JsonResponse({'error': 'No total price found in session'}, status=400)
 
             transaction_id = str(uuid.uuid4())
 
@@ -72,27 +78,30 @@ def process_payment_view(request):
                 'transaction_id': transaction_id,
             }
 
-            response = requests.post('http://127.0.0.1:8000/bank/process_payment/', json=data_to_send)
+            try:
+                response = requests.post('http://127.0.0.1:8000/bank/process_payment/', json=data_to_send)
+                response.raise_for_status()
 
-            if response.status_code == 200:
-                response_data = response.json()
-                result = response_data.get('result')
-                transaction.reference_id = response_data['reference_id']
+                if response.status_code == 200:
+                    response_data = response.json()
+                    result = response_data.get('result')
+                    transaction.reference_id = response_data['reference_id']
 
-                request.session['transaction_result'] = result
-                request.session['reference_id'] = response_data['reference_id']
+                    request.session['transaction_result'] = result
+                    request.session['reference_id'] = response_data['reference_id']
 
-                if result == 'success':
-                    transaction.status = 'success'
-                else:
-                    transaction.status = 'failed'
+                    if result == 'success':
+                        transaction.status = 'success'
+                    else:
+                        transaction.status = 'failed'
 
-                transaction.save()
+                    transaction.save()
 
-                return redirect('gateway:show_bank_result')
-            else:  # status_code != 200
-                return render(request, 'gateway/error.html', {'error': 'خطا در ارتباط با بانک'})
-
+                    return redirect('gateway:show_bank_result')
+                else:  # status_code != 200
+                    return render(request, 'gateway/error.html', {'error': 'خطا در ارتباط با بانک'})
+            except requests.exceptions.RequestException as e:
+                return render(request, 'gateway/error.html', {'error': f'Bank connection error: {str(e)}'})
     else:  # request.method != 'POST'
         form = BankAccountInfo()
 
@@ -115,9 +124,12 @@ def return_to_market_view(request):
     reference_id = request.session.get('reference_id')
     transaction_id = request.session.get('transaction_id')
 
+    if not transaction_id:
+        return JsonResponse({'error': 'Transaction ID not found in session'}, status=400)
+
     transaction = Transaction.objects.get(transaction_id=transaction_id)
 
-    date_to_send = {
+    data_to_send = {
         'user': user,
         'transaction_id': transaction_id,
         'transaction_result': transaction_result,
@@ -128,7 +140,7 @@ def return_to_market_view(request):
 
     }
 
-    response = requests.post('http://127.0.0.1:8000/market/success/', json=date_to_send)
+    response = requests.post('http://127.0.0.1:8000/market/success/', json=data_to_send)
 
     if response.status_code == 200:
         return redirect('http://127.0.0.1:8000/market/success/')
@@ -147,7 +159,7 @@ def get_last_ok(request):
             transaction.last_market_ok = last_ok
             transaction.save()
 
-            response = requests.post('http://127.0.0.1:8000/bank/last-ok/', {
+            response = requests.post('http://127.0.0.1:8000/bank/last-ok/', json={
                 'transaction_id': transaction_id,
                 'last_ok': last_ok,
             })
@@ -168,19 +180,22 @@ def transaction_status_from_bank(request):
             transaction.bank_message = message
             transaction.save()
 
-            response = requests.post('http://127.0.0.1:8000/market/psp-message', json={
-                'transaction_id': transaction_id,
-                'reference_id': reference_id,
-                'status': status,
-                'message': message,
-            })
+            try:
+                response = requests.post('http://127.0.0.1:8000/market/psp-message', json={
+                    'transaction_id': transaction_id,
+                    'reference_id': reference_id,
+                    'status': status,
+                    'message': message,
+                })
 
-            if response.status_code == 200:
-                print('not-confirmed message successfully send to market')
-            else:
-                print('not-confirmed message NOT successfully send to market !')
+                if response.status_code == 200:
+                    print('not-confirmed message successfully send to market')
+                else:
+                    print('not-confirmed message NOT successfully send to market !')
 
-            return JsonResponse({'status': 'success', 'message': 'Transaction status updated successfully.'})
+                return JsonResponse({'status': 'success', 'message': 'Transaction status updated successfully.'})
+            except requests.exceptions.RequestException as e:
+                print(f'Error sending message to market: {str(e)}')
 
         except Transaction.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Transaction not found.'}, status=404)

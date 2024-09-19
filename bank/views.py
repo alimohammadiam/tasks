@@ -12,17 +12,23 @@ from .tasks import check_last_ok
 
 def bank_transaction_view(request):
     if request.method == 'POST':
-        data = request.json()
+        data = json.loads(request.body)
         account_number = data.get('account_number')
         password = data.get('password')
         cvv2 = data.get('cvv2')
         amount = data.get('total_price')
         transaction_id = data.get('transaction_id')
 
-        account = get_object_or_404(BankAccount, account_number=account_number)
+        try:
+            account = get_object_or_404(BankAccount, account_number=account_number)
+        except BankAccount.DoesNotExist:
+            return JsonResponse({'status': 'failed', 'message': 'account number invalid'}, status=404)
 
-        if account.password != password or account.cvv2 != cvv2:
+        if account.password != password:
             return JsonResponse({'status': 'failed', 'message': 'رمز اشتباه !'}, status=400)
+
+        if account.cvv2 != cvv2:
+            return JsonResponse({'status': 'failed', 'message': 'cvv2 اشتباه !'}, status=400)
 
         if account.balance < amount:
             return JsonResponse({'status': 'failed', 'message': 'موجودی ناکافی !'}, status=400)
@@ -60,6 +66,14 @@ def get_last_ok(request):
         last_ok = data.get('last_ok')
 
         if last_ok:
-            transaction = Transaction.objects.get(transaction_id=transaction_id)
-            transaction.last_market_ok = last_ok
-            transaction.save()
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+                transaction.last_market_ok = last_ok
+                transaction.save()
+                return JsonResponse({'status': 'success', 'message': 'تایید نهایی مارکت ثبت شد'}, status=200)
+            except Transaction.DoesNotExist:
+                return JsonResponse({'status': 'failed', 'message': 'تراکنش یافت نشد!'}, status=404)
+
+    return JsonResponse({'status': 'failed', 'message': 'درخواست نادرست است!'}, status=400)
+
+
